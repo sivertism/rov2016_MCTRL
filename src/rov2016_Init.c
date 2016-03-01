@@ -6,28 +6,19 @@
 
 /* Include -------------------------------------------------------------------*/
 #include "stm32f30x.h"
-#include "rov2016_Accelerometer.h"
 #include "rov2016_canbus.h"
 #include "rov2016_UART.h"
-#include "rov2016_Gyroscope.h"
 #include "rov2016_TIM.h"
-#include "rov2016_ADC.h"
 #include "rov2016_SysTick.h"
+#include "rov2016_GPIO.h"
 /* Funtion Prototypes --------------------------------------------------------*/
-void init(void);
-void GPIO_init(void);
+extern void init(void);
 
 /* Funtion Definitions -------------------------------------------------------*/
 
-void init(void){
+extern void init(void){
 	GPIO_init();
 	USART2_init();
 	CAN_Config();
-	accelerometer_init();
-	magnetometer_init();
-	gyroscope_init();
-	ADC_init();
-	TIM4_init();
-	TIM2_init();
 	SysTick_init();
 }
