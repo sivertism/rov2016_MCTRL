@@ -16,11 +16,13 @@
 #include "core_cm4.h"
 #include "rov2016_canbus.h"
 #include "rov2016_UART.h"
+#include "bldc_interface.h"
 /* Global variables --------------------------------------------------------------------*/
 #include "extern_decl_global_vars.h"
 
 /* Private variables -------------------------------------------------------------------*/
 static uint8_t kjor = 0, timestamp=0;
+static uint16_t rpm_counter = 600;
 
 /* Private function declarations ---------------------------------------------------------------*/
 
@@ -76,8 +78,12 @@ void SysTick_Handler(void){
 			}
 		}
 
-	if((teller>10) && kjor){
+	if((teller>100) && kjor){
 		GPIOE->ODR ^= SYSTICK_LED << 8;
+		bldc_interface_set_rpm(rpm_counter);
+		if(rpm_counter <= 4000){
+		rpm_counter += 10;
+		} else rpm_counter = 600;
 		teller = 0;
 	} // end if
 

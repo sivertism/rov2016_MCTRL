@@ -11,21 +11,6 @@
 void init(void);
 
 /* Funtion Definitions -------------------------------------------------------*/
-int main(void){
-	/* Initialization *********************************************************/
-	init();
-	comm_uart_init();
-	GPIOE->ODR = 0; // Turn off LED's
-	// Give bldc_interface a function to call when valus are received.
-	bldc_interface_set_rx_value_func(bldc_val_received);
-	/* Private vars ***********************************************************/
-
-	/* Main loop *************************************************************/
-	while(1){
-		GPIOE->ODR ^= MAIN_LOOP_LED << 8;
-	} // end while
-} // end main
-
 void bldc_val_received(mc_values *val) {
 //	main_printf("\r\n");
 //	main_printf("Input voltage: %.2f V\r\n", val->v_in);
@@ -42,6 +27,24 @@ void bldc_val_received(mc_values *val) {
 //	main_printf("Tacho ABS:     %i counts\r\n", val->tachometer_abs);
 //	main_printf("Fault Code:    %s\r\n", bldc_interface_fault_to_string(val->fault_code));
 }
+
+int main(void){
+	/* Initialization *********************************************************/
+	init();
+	comm_uart_init();
+	GPIOE->ODR = 0; // Turn off LED's
+	// Give bldc_interface a function to call when valus are received.
+	bldc_interface_set_rx_value_func(bldc_val_received);
+	/* Private vars ***********************************************************/
+	printf("Init complete");
+
+	/* Main loop *************************************************************/
+	while(1){
+		GPIOE->ODR ^= MAIN_LOOP_LED << 8;
+	} // end while
+} // end main
+
+
 
 
 
