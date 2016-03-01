@@ -50,7 +50,7 @@ void SysTick_init(void) {
  * @retval None
  */
 
-uint8_t teller = 0;
+uint16_t teller = 0;
 uint16_t val = 0;
 uint32_t valVoltage = 0;
 uint8_t timeStamp = 0;
@@ -78,12 +78,14 @@ void SysTick_Handler(void){
 			}
 		}
 
-	if((teller>100) && kjor){
+	if((teller>1000) && kjor){
+		printf("Attempting to set rpm...\n");
 		GPIOE->ODR ^= SYSTICK_LED << 8;
 		bldc_interface_set_rpm(rpm_counter);
 		if(rpm_counter <= 4000){
 		rpm_counter += 10;
 		} else rpm_counter = 600;
+
 		teller = 0;
 	} // end if
 
