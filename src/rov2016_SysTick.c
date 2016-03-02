@@ -22,8 +22,8 @@
 
 /* Private variables -------------------------------------------------------------------*/
 static uint8_t kjor = 0, timestamp=0;
-static uint16_t rpm_counter = 7000;
-
+static float rpm_counter = 0.3f;
+static float dir = 1.0;
 /* Private function declarations ---------------------------------------------------------------*/
 
 /* Function definitions ----------------------------------------------------------------*/
@@ -75,18 +75,26 @@ void SysTick_Handler(void){
 			}
 			if (melding == 's'){
 				kjor = 0;
+				bldc_interface_set_rpm(0);
 				USART_transmit(USART2, 0x03); //ETX
+			}
+			if (melding == 'd'){
+				dir = -dir;
+				volatile uint32_t i = 360000;
+				while(i-->0);
+				bldc_interface_set_duty_cycle(0.0f);
+				i = 360000;
+				while(i-->0);
 			}
 		}
 
-	if((teller>1000) && kjor){
+	if((teller>100) && kjor){
 //		printf("Attempting to set rpm %d\n",rpm_counter);
 		GPIOE->ODR ^= SYSTICK_LED << 8;
-		bldc_interface_set_rpm(rpm_counter);
-		if(rpm_counter <= 11000){
-			rpm_counter += 1000;
-		} else rpm_counter = 6000;
-
+		if(rpm_counter <= 0.9){
+			rpm_counter += 0.01;
+		} else rpm_counter = 0.3;
+		bldc_interface_set_duty_cycle(rpm_counter*dir);
 		teller = 0;
 	} // end if
 
