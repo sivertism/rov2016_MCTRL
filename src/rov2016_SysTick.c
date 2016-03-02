@@ -16,12 +16,14 @@
 #include "core_cm4.h"
 #include "rov2016_canbus.h"
 #include "rov2016_UART.h"
+#include "bldc_interface.h"
 /* Global variables --------------------------------------------------------------------*/
 #include "extern_decl_global_vars.h"
 
 /* Private variables -------------------------------------------------------------------*/
 static uint8_t kjor = 0, timestamp=0;
-
+static float rpm_counter = 0.3f;
+static float dir = 1.0;
 /* Private function declarations ---------------------------------------------------------------*/
 
 /* Function definitions ----------------------------------------------------------------*/
@@ -48,7 +50,8 @@ void SysTick_init(void) {
  * @retval None
  */
 
-uint8_t teller = 0;
+uint16_t teller = 0;
+uint16_t alivecount = 0;
 uint16_t val = 0;
 uint32_t valVoltage = 0;
 uint8_t timeStamp = 0;
@@ -72,12 +75,26 @@ void SysTick_Handler(void){
 			}
 			if (melding == 's'){
 				kjor = 0;
+				bldc_interface_set_rpm(0);
 				USART_transmit(USART2, 0x03); //ETX
+			}
+			if (melding == 'd'){
+				dir = -dir;
+				volatile uint32_t i = 360000;
+				while(i-->0);
+				bldc_interface_set_duty_cycle(0.0f);
+				i = 360000;
+				while(i-->0);
 			}
 		}
 
-	if((teller>10) && kjor){
+	if((teller>100) && kjor){
+//		printf("Attempting to set rpm %d\n",rpm_counter);
 		GPIOE->ODR ^= SYSTICK_LED << 8;
+		if(rpm_counter <= 0.9){
+			rpm_counter += 0.01;
+		} else rpm_counter = 0.3;
+		bldc_interface_set_duty_cycle(rpm_counter*dir);
 		teller = 0;
 	} // end if
 
