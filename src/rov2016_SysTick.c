@@ -22,7 +22,7 @@
 
 /* Private variables -------------------------------------------------------------------*/
 static uint8_t kjor = 0, timestamp=0;
-static uint16_t rpm_counter = 600;
+static uint16_t rpm_counter = 7000;
 
 /* Private function declarations ---------------------------------------------------------------*/
 
@@ -51,6 +51,7 @@ void SysTick_init(void) {
  */
 
 uint16_t teller = 0;
+uint16_t alivecount = 0;
 uint16_t val = 0;
 uint32_t valVoltage = 0;
 uint8_t timeStamp = 0;
@@ -79,12 +80,12 @@ void SysTick_Handler(void){
 		}
 
 	if((teller>1000) && kjor){
-		printf("Attempting to set rpm...\n");
+//		printf("Attempting to set rpm %d\n",rpm_counter);
 		GPIOE->ODR ^= SYSTICK_LED << 8;
 		bldc_interface_set_rpm(rpm_counter);
-		if(rpm_counter <= 4000){
-		rpm_counter += 10;
-		} else rpm_counter = 600;
+		if(rpm_counter <= 11000){
+			rpm_counter += 1000;
+		} else rpm_counter = 6000;
 
 		teller = 0;
 	} // end if
