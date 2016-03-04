@@ -16,7 +16,7 @@
 #include "core_cm4.h"
 #include "rov2016_canbus.h"
 #include "rov2016_UART.h"
-#include "bldc_interface.h"
+#include "rov2016_VESC.h"
 /* Global variables --------------------------------------------------------------------*/
 #include "extern_decl_global_vars.h"
 
@@ -57,44 +57,48 @@ uint32_t valVoltage = 0;
 uint8_t timeStamp = 0;
 
 void SysTick_Handler(void){
-	/* BLDC timing function, needs to be called every 1 ms. */
-	bldc_interface_uart_run_timer();
 	teller++;
-
-	/* Check for new message on CAN and update LEDs */
-	if(CAN_getRxMessages()>0){
-		GPIOE->ODR ^= (1u << CAN_getByteFromMessage(2,0)) << 8;
-	} // end if
 
 	/* Check for USART messages, start if 'k' */
 		if (USART_getNewBytes()>0){
 			uint8_t melding = USART_getRxMessage();
 			if (melding == 'k') {
 				kjor = 1;
-				USART_transmit(USART2, 0x02); // STX
+				VESC_setDutyCycle(ESC_ID_1, 0.0f);
 			}
 			if (melding == 's'){
 				kjor = 0;
-				bldc_interface_set_rpm(0);
-				USART_transmit(USART2, 0x03); //ETX
+				VESC_setDutyCycle(ESC_ID_1, 0.0f);
 			}
 			if (melding == 'd'){
 				dir = -dir;
+
 				volatile uint32_t i = 360000;
 				while(i-->0);
-				bldc_interface_set_duty_cycle(0.0f);
+
+				VESC_setDutyCycle(ESC_ID_1, VESC_DUTY_CYCLE_DIR_CHANGE);
+				i = 360000;
+				while(i-->0);
+
+				VESC_setDutyCycle(ESC_ID_1, 0.0f);
+				i = 360000;
+				while(i-->0);
+
+				VESC_setDutyCycle(ESC_ID_1, VESC_DUTY_CYCLE_DIR_CHANGE);
 				i = 360000;
 				while(i-->0);
 			}
 		}
 
 	if((teller>100) && kjor){
-//		printf("Attempting to set rpm %d\n",rpm_counter);
-		GPIOE->ODR ^= SYSTICK_LED << 8;
+		GPIOE->ODR ^= SYSTICK_LED << 8; // Update status LED.
+
 		if(rpm_counter <= 0.9){
 			rpm_counter += 0.01;
 		} else rpm_counter = 0.3;
-		bldc_interface_set_duty_cycle(rpm_counter*dir);
+
+		VESC_setDutyCycle(ESC_ID_1, rpm_counter);
+
 		teller = 0;
 	} // end if
 
